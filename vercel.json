@@ -6,6 +6,14 @@
       "destination": "/app.html"
     },
     {
+      "source": "/app/(.*)",
+      "destination": "/app.html"
+    },
+    {
+      "source": "/(public|manifest\\.json|favicon\\.ico|robots\\.txt|sitemap\\.xml)/(.*)",
+      "destination": "/$1/$2"
+    },
+    {
       "source": "/",
       "destination": "/index.html"
     }
