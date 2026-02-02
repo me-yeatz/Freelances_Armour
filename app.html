@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelance Armor | Professional Boundaries System</title>
+    <meta name="description"
+        content="A professional tool for freelancers and architects to track client interactions, maintain boundaries, and manage project risks.">
+
+    <!-- Professional Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="public/icons8-shield-100.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Armor">
+    <link rel="apple-touch-icon" href="public/Freelances_Shield01.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        armor: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        },
+                        brand: {
+                            primary: '#3b82f6',
+                            secondary: '#6366f1',
+                            accent: '#f59e0b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            touch-action: manipulation;
+            scroll-behavior: smooth;
+        }
+
+        canvas {
+            touch-action: none;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-gradient {
+            background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent),
+                radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.12), transparent);
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="bg-armor-950 text-slate-200 min-h-screen font-sans selection:bg-brand-primary/30">
+    <div class="hero-gradient fixed inset-0 pointer-events-none"></div>
+
+    <div id="app" class="relative z-10 p-4 md:p-8 max-w-6xl mx-auto space-y-8"></div>
+
+    <script>
+        // Icons
+        const icons = {
+            shield: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>',
+            phone: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>',
+            pen: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path></svg>',
+            clock: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+            check: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+            alert: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
+            eraser: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"></path><path d="M22 21H7"></path><path d="m5 11 9 9"></path></svg>',
+            download: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
+            brain: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.54z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.54z"></path></svg>',
+            trash: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1-2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>',
+            database: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>',
+            upload: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>',
+            book: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>',
+            info: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'
+        };
+
+        const quickTemplates = [
+            { title: "Weekend Call", prompt: "Client called me on Saturday/Sunday asking for urgent changes that could wait until Monday" },
+            { title: "Late Night Request", prompt: "Client messaging me at 11pm demanding immediate response about non-urgent design questions" },
+            { title: "Scope Creep", prompt: "Client asking for major additional work without discussing additional payment" },
+            { title: "Unreasonable Timeline", prompt: "Client wants complete technical drawings done by tomorrow when it normally takes a week" },
+            { title: "Free Consultation Abuse", prompt: "Client keeps asking for free advice and consultations without committing to paid project" }
+        ];
+
+        // App state
+        let state = {
+            activeTab: 'shield',
+            clients: JSON.parse(localStorage.getItem('freelance_clients') || '[]'),
+            interactions: JSON.parse(localStorage.getItem('freelance_interactions') || '[]'),
+            sketches: JSON.parse(localStorage.getItem('freelance_sketches') || '[]'),
+            newClient: { name: '', project: '', riskLevel: 'green' },
+            newInteraction: { clientName: '', type: 'whatsapp_call', description: '', wasUseful: false },
+            aiInput: '',
+            aiResponse: '',
+            aiLoading: false,
+            canvas: null,
+            isDrawing: false,
+            drawColor: '#ffffff',
+            lineWidth: 4,
+            tool: 'pen'
+        };
+
+        function save(key) {
+            localStorage.setItem(`freelance_${key}`, JSON.stringify(state[key]));
+        }
+
+        // Vault Logic
+        function exportData() {
+            const data = {
+                clients: state.clients,
+                interactions: state.interactions,
+                sketches: state.sketches,
+                exportDate: new Date().toISOString(),
+                app: "Freelance Armor"
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `freelance-armor-vault-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function triggerImport() {
+            document.getElementById('importFile').click();
+        }
+
+        function importData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (data.app !== "Freelance Armor") throw new Error("Invalid vault file.");
+
+                    if (confirm("This will merge the imported data with your current records. Proceed?")) {
+                        // Better merge: avoid duplicates by ID if possible
+                        state.clients = [...new Map([...state.clients, ...data.clients].map(item => [item.id, item])).values()];
+                        state.interactions = [...new Map([...state.interactions, ...data.interactions].map(item => [item.id, item])).values()];
+                        state.sketches = [...new Map([...state.sketches, ...data.sketches].map(item => [item.id, item])).values()];
+
+                        save('clients');
+                        save('interactions');
+                        save('sketches');
+                        render();
+                        alert("Vault successfully restored. Your history is now safe.");
+                    }
+                } catch (err) {
+                    alert("Error importing data: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function wipeData() {
+            if (confirm("CRITICAL ACTION: This will delete ALL data locally. Ensure you have a backup first. Delete everything?")) {
+                localStorage.clear();
+                state.clients = [];
+                state.interactions = [];
+                state.sketches = [];
+                render();
+                alert("All local records purged.");
+            }
+        }
+
+        function getClientStats(clientName) {
+            const clientInteractions = state.interactions.filter(i => i.clientName === clientName);
+            return {
+                total: clientInteractions.length,
+                useless: clientInteractions.filter(i => !i.wasUseful).length,
+                weekend: clientInteractions.filter(i => i.isWeekend).length,
+                whatsapp: clientInteractions.filter(i => i.type.includes('whatsapp')).length
+            };
+        }
+
+        function addClient() {
+            if (state.newClient.name && state.newClient.project) {
+                state.clients.push({
+                    ...state.newClient,
+                    id: Date.now(),
+                    addedDate: new Date().toISOString()
+                });
+                save('clients');
+                state.newClient = { name: '', project: '', riskLevel: 'green' };
+                render();
+            }
+        }
+
+        function deleteClient(id) {
+            if (confirm('Delete this client and all related data?')) {
+                state.clients = state.clients.filter(c => c.id !== id);
+                save('clients');
+                render();
+            }
+        }
+
+        function addInteraction() {
+            if (state.newInteraction.clientName && state.newInteraction.description) {
+                const now = new Date();
+                const dayOfWeek = now.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+                state.interactions.push({
+                    ...state.newInteraction,
+                    isWeekend,
+                    id: Date.now(),
+                    timestamp: new Date().toISOString()
+                });
+                save('interactions');
+                state.newInteraction = { clientName: '', type: 'whatsapp_call', description: '', wasUseful: false };
+                render();
+                alert('Interaction logged successfully.');
+            }
+        }
+
+        async function getAIHelp() {
+            if (!state.aiInput.trim()) {
+                state.aiResponse = 'Please describe the client situation first.';
+                render();
+                return;
+            }
+
+            state.aiLoading = true;
+            state.aiResponse = '';
+            render();
+
+            setTimeout(() => {
+                const responses = [
+                    `**Boundary Directive:**\n"Thank you for reaching out. I've received your message. I am currently away from my desk as it is outside my standard consultancy hours. I will review this once I resume work at 9:00 AM on the next business day."\n\n**Professional Logic:**\nSets a hard time-boundary while maintaining service expectations.`,
+                    `**Scope Guard:**\n"This request involves architectural revisions that extend beyond our current Phase 1 agreement. To maintain project focus, I recommend we log this as a Phase 2 enhancement or I can provide a supplementary fee proposal for this addition."\n\n**Professional Logic:**\nImmediately identifies and labels scope creep as a business opportunity.`,
+                    `**Quality Anchor:**\n"In order to maintain the structural and design integrity of this project, a compressed timeline is not advisable. High-quality documentation requires dedicated time for internal review. Let's stick to the agreed-upon delivery date of [Date] to ensure excellence."\n\n**Professional Logic:**\nReframes speed as a risk to project quality.`
+                ];
+
+                state.aiResponse = responses[Math.floor(Math.random() * responses.length)];
+                state.aiLoading = false;
+                render();
+            }, 1500);
+        }
+
+        function switchTab(tab) {
+            state.activeTab = tab;
+            render();
+            if (tab === 'sketch') setTimeout(initCanvas, 100);
+        }
+
+        // Canvas Logic
+        function initCanvas() {
+            const canvas = document.getElementById('drawCanvas');
+            if (!canvas) return;
+
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 500;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            state.canvas = canvas;
+
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+        }
+
+        function getCanvasCoordinates(e) {
+            const rect = state.canvas.getBoundingClientRect();
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function startDrawing(e) {
+            state.isDrawing = true;
+            const { x, y } = getCanvasCoordinates(e);
+            const ctx = state.canvas.getContext('2d');
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function draw(e) {
+            if (!state.isDrawing) return;
+            e.preventDefault();
+            const { x, y } = getCanvasCoordinates(e);
+            const ctx = state.canvas.getContext('2d');
+            ctx.lineTo(x, y);
+            ctx.strokeStyle = state.tool === 'eraser' ? '#0f172a' : state.drawColor;
+            ctx.lineWidth = state.tool === 'eraser' ? 30 : state.lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.stroke();
+        }
+
+        function stopDrawing() { state.isDrawing = false; }
+        function clearCanvas() {
+            const ctx = state.canvas.getContext('2d');
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, state.canvas.width, state.canvas.height);
+        }
+        function saveSketch() {
+            const dataUrl = state.canvas.toDataURL();
+            state.sketches.unshift({
+                id: Date.now(),
+                image: dataUrl,
+                timestamp: new Date().toISOString(),
+                clientName: 'Manual Sketch'
+            });
+            save('sketches');
+            alert('Sketch archived to Timeline.');
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-6">
+                            <a href="/" class="hover:opacity-80 transition-opacity">
+                                <img src="public/Freelances_Shield01.png" alt="Freelance Armor Logo" class="w-16 h-16 md:w-20 md:h-20 object-contain logo-glow">
+                            </a>
+                            <div>
+                                <h1 class="text-4xl md:text-5xl font-display font-bold tracking-tight text-white italic uppercase">
+                                    FREELANCE <span class="text-brand-primary">ARMOR</span>
+                                </h1>
+                                <div class="h-1 w-24 bg-brand-primary/50 mt-1"></div>
+                            </div>
+                        </div>
+                        <p class="text-armor-400 font-light max-w-lg text-lg">Defensive system for professional architects. Maintain boundaries, track interactions, and safeguard your creative sanity.</p>
+                    </div>
+                </header>
+
+                <nav class="flex flex-wrap gap-2 mb-10 glass p-2 rounded-2xl sticky top-4 z-50 shadow-2xl animate-fade-in" style="animation-delay: 0.1s">
+                    <button onclick="switchTab('shield')" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide transition-all duration-300 ${state.activeTab === 'shield' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-armor-400 hover:bg-armor-800 hover:text-white'}">
+                        ${icons.shield}
+                        <span class="hidden sm:inline">Clients</span>
+                    </button>
+                    <button onclick="switchTab('calls')" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide transition-all duration-300 ${state.activeTab === 'calls' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-armor-400 hover:bg-armor-800 hover:text-white'}">
+                        ${icons.phone}
+                        <span class="hidden sm:inline">Log Session</span>
+                    </button>
+                    <button onclick="switchTab('sketch')" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide transition-all duration-300 ${state.activeTab === 'sketch' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-armor-400 hover:bg-armor-800 hover:text-white'}">
+                        ${icons.pen}
+                        <span class="hidden sm:inline">SketchPad</span>
+                    </button>
+                    <button onclick="switchTab('ai')" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide transition-all duration-300 ${state.activeTab === 'ai' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-armor-400 hover:bg-armor-800 hover:text-white'}">
+                        ${icons.brain}
+                        <span class="hidden sm:inline">Boundary AI</span>
+                    </button>
+                    <button onclick="switchTab('history')" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide transition-all duration-300 ${state.activeTab === 'history' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-armor-400 hover:bg-armor-800 hover:text-white'}">
+                        ${icons.clock}
+                        <span class="hidden sm:inline">Timeline</span>
+                    </button>
+                    <button onclick="switchTab('vault')" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide transition-all duration-300 ${state.activeTab === 'vault' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-armor-400 hover:bg-armor-800 hover:text-white'}">
+                        ${icons.database}
+                        <span class="hidden sm:inline">Secure Vault</span>
+                    </button>
+                    <button onclick="switchTab('manual')" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide transition-all duration-300 ${state.activeTab === 'manual' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-armor-400 hover:bg-armor-800 hover:text-white'}">
+                        ${icons.book}
+                        <span class="hidden sm:inline">Manual</span>
+                    </button>
+                    <button onclick="switchTab('about')" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide transition-all duration-300 ${state.activeTab === 'about' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' : 'text-armor-400 hover:bg-armor-800 hover:text-white'}">
+                        ${icons.info}
+                        <span class="hidden sm:inline">About</span>
+                    </button>
+                </nav>
+
+                <main id="tabContent" class="animate-fade-in" style="animation-delay: 0.2s"></main>
+                <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
+                
+                <footer class="mt-20 py-8 border-t border-armor-800 text-armor-500 text-sm space-y-4">
+                    <div class="flex justify-between items-center">
+                        <p>© 2026 ARCHITECTURAL DEFENSE SYSTEMS</p>
+                        <div class="flex gap-4">
+                            <span class="flex items-center gap-2"><span class="status-dot bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span> Shield Status: Optimal</span>
+                        </div>
+                    </div>
+                    <div class="text-center text-[10px] tracking-widest text-armor-600 uppercase">
+                        Created with love by <span class="text-armor-400">yeatz</span> • Powered by <span class="text-armor-400">Gemini</span> • Production by <span class="text-armor-400">Claude</span>
+                    </div>
+                </footer>
+            `;
+
+            const content = document.getElementById('tabContent');
+
+            if (state.activeTab === 'shield') {
+                content.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-1 glass rounded-3xl p-6 border border-armor-700/50 h-fit">
+                            <h2 class="text-xl font-display font-semibold mb-6 flex items-center gap-2 italic">
+                                <span class="text-brand-primary">+</span> Add Target Client
+                            </h2>
+                            <div class="space-y-4">
+                                <input type="text" id="clientName" placeholder="Client Name" value="${state.newClient.name}" class="w-full bg-armor-900/50 border border-armor-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all">
+                                <input type="text" id="clientProject" placeholder="Project Name" value="${state.newClient.project}" class="w-full bg-armor-900/50 border border-armor-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all">
+                                <select id="clientRisk" class="w-full bg-armor-900/50 border border-armor-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all appearance-none">
+                                    <option value="green" ${state.newClient.riskLevel === 'green' ? 'selected' : ''}>🟢 Safe Portfolio</option>
+                                    <option value="yellow" ${state.newClient.riskLevel === 'yellow' ? 'selected' : ''}>🟡 Caution Advised</option>
+                                    <option value="red" ${state.newClient.riskLevel === 'red' ? 'selected' : ''}>🔴 HIGH RISK</option>
+                                </select>
+                                <button onclick="addClient()" class="w-full bg-brand-primary hover:bg-blue-600 px-6 py-4 rounded-xl font-bold text-white transition-all shadow-lg active:scale-95">RECRUIT CLIENT</button>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-2 space-y-4">
+                            <h2 class="text-xl font-display font-semibold mb-2 italic">Active Watchlist</h2>
+                            ${state.clients.length === 0 ? `
+                                <div class="glass border-dashed border-2 border-armor-700 rounded-3xl p-12 text-center">
+                                    <div class="text-armor-600 mb-4 flex justify-center">${icons.shield}</div>
+                                    <p class="text-armor-500 font-light">No clients registered in the system yet.</p>
+                                </div>
+                            ` : state.clients.map(client => {
+                    const stats = getClientStats(client.name);
+                    const riskInfo = {
+                        green: { color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20', label: 'SECURE' },
+                        yellow: { color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20', label: 'CAUTION' },
+                        red: { color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-400/20', label: 'HOSTILE' }
+                    };
+                    const r = riskInfo[client.riskLevel];
+                    return `
+                                    <div class="glass card-hover rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 ${r.border}">
+                                        <div>
+                                            <div class="flex items-center gap-3 mb-1">
+                                                <h3 class="font-display font-bold text-xl">${client.name}</h3>
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold tracking-widest ${r.bg} ${r.color} border ${r.border}">${r.label}</span>
+                                            </div>
+                                            <p class="text-armor-400 text-sm font-light tracking-wide truncate w-64">${client.project}</p>
+                                        </div>
+                                        <div class="flex items-center gap-6">
+                                            <div class="text-right">
+                                                <p class="text-[10px] text-armor-500 font-bold uppercase tracking-tighter mb-1">Abuse Metrics</p>
+                                                <div class="flex gap-3 text-xs">
+                                                    <span class="${stats.whatsapp > 5 ? 'text-red-400' : 'text-armor-400'}">WA: ${stats.whatsapp}</span>
+                                                    <span class="${stats.weekend > 0 ? 'text-orange-400' : 'text-armor-400'}">WE: ${stats.weekend}</span>
+                                                    <span class="${stats.useless > 3 ? 'text-red-400 font-bold' : 'text-armor-400'}">WASTE: ${stats.useless}</span>
+                                                </div>
+                                            </div>
+                                            <button onclick="deleteClient(${client.id})" class="p-2 text-armor-600 hover:text-red-400 transition-colors">${icons.trash}</button>
+                                        </div>
+                                    </div>
+                                `;
+                }).join('')}
+                        </div>
+                    </div>
+                `;
+                document.getElementById('clientName')?.addEventListener('input', e => { state.newClient.name = e.target.value; });
+                document.getElementById('clientProject')?.addEventListener('input', e => { state.newClient.project = e.target.value; });
+                document.getElementById('clientRisk')?.addEventListener('change', e => { state.newClient.riskLevel = e.target.value; });
+            } else if (state.activeTab === 'calls') {
+                content.innerHTML = `
+                    <div class="max-w-2xl mx-auto glass rounded-3xl p-8 border border-armor-700/50 shadow-2xl">
+                        <h2 class="text-2xl font-display font-bold mb-8 italic flex items-center gap-3">
+                            <span class="text-brand-primary">${icons.phone}</span> Session Surveillance
+                        </h2>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-armor-400 uppercase tracking-widest mb-2">Subject Client</label>
+                                <select id="interactionClient" class="w-full bg-armor-900/50 border border-armor-700 rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all appearance-none">
+                                    <option value="">-- SELECT SUBJECT --</option>
+                                    ${state.clients.map(c => `<option value="${c.name}" ${state.newInteraction.clientName === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-armor-400 uppercase tracking-widest mb-2">Vector of Attack</label>
+                                <select id="interactionType" class="w-full bg-armor-900/50 border border-armor-700 rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all appearance-none">
+                                    <option value="whatsapp_call">📞 WhatsApp Call (Unscheduled)</option>
+                                    <option value="whatsapp_message">💬 WhatsApp Spam</option>
+                                    <option value="phone_call">☎️ Standard Voice Call</option>
+                                    <option value="meeting">🤝 Physical Meeting</option>
+                                    <option value="email">✉️ Passive-Aggressive Email</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-armor-400 uppercase tracking-widest mb-2">Incident Description</label>
+                                <textarea id="interactionDesc" placeholder="Describe the boundary violation or project discussion..." class="w-full bg-armor-900/50 border border-armor-700 rounded-xl px-4 py-4 h-32 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all"></textarea>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 bg-armor-900/30 rounded-2xl border border-armor-800">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="interactionUseful" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-armor-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+                                </label>
+                                <span class="text-sm font-semibold text-armor-300 italic">This interaction was productive & billable</span>
+                            </div>
+                            <button onclick="addInteraction()" class="w-full bg-brand-primary hover:bg-blue-600 px-6 py-4 rounded-xl font-black text-white transition-all shadow-xl active:scale-95 uppercase tracking-widest">LOG INCIDENT</button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('interactionClient')?.addEventListener('change', e => { state.newInteraction.clientName = e.target.value; });
+                document.getElementById('interactionType')?.addEventListener('change', e => { state.newInteraction.type = e.target.value; });
+                document.getElementById('interactionDesc')?.addEventListener('input', e => { state.newInteraction.description = e.target.value; });
+                document.getElementById('interactionUseful')?.addEventListener('change', e => { state.newInteraction.wasUseful = e.target.checked; });
+            } else if (state.activeTab === 'sketch') {
+                content.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="glass rounded-3xl p-6 border border-armor-700/50">
+                            <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                                <h2 class="text-xl font-display font-bold italic flex items-center gap-3">
+                                    <span class="text-brand-primary">${icons.pen}</span> Rapid Ideation Pad
+                                </h2>
+                                <div class="flex flex-wrap gap-2">
+                                    <button onclick="state.tool='pen'; render();" class="p-3 rounded-xl transition-all ${state.tool === 'pen' ? 'bg-brand-primary text-white shadow-lg' : 'bg-armor-800 text-armor-400 hover:text-white'}">${icons.pen}</button>
+                                    <button onclick="state.tool='eraser'; render();" class="p-3 rounded-xl transition-all ${state.tool === 'eraser' ? 'bg-brand-primary text-white shadow-lg' : 'bg-armor-800 text-armor-400 hover:text-white'}">${icons.eraser}</button>
+                                    <div class="w-px h-10 bg-armor-700 mx-2 hidden md:block"></div>
+                                    <div class="flex gap-2 bg-armor-900/50 p-1 rounded-xl border border-armor-700">
+                                        ${['#ffffff', '#3b82f6', '#ef4444', '#22c55e', '#f59e0b'].map(c => `
+                                            <button onclick="state.drawColor='${c}'; render();" class="w-8 h-8 rounded-lg transition-transform hover:scale-110 active:scale-90" style="background-color: ${c}; border: ${state.drawColor === c ? '2px solid white' : 'none'}"></button>
+                                        `).join('')}
+                                    </div>
+                                    <select onchange="state.lineWidth=Number(this.value)" class="bg-armor-800 text-armor-300 rounded-xl px-4 py-2 text-sm border border-armor-700 focus:outline-none ring-brand-primary/50">
+                                        <option value="2" ${state.lineWidth === 2 ? 'selected' : ''}>Fine</option>
+                                        <option value="4" ${state.lineWidth === 4 ? 'selected' : ''}>Medium</option>
+                                        <option value="8" ${state.lineWidth === 8 ? 'selected' : ''}>Broad</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <canvas id="drawCanvas" class="w-full border-2 border-armor-700 rounded-2xl cursor-crosshair bg-armor-950 shadow-inner" style="height: 500px; touch-action: none;"></canvas>
+                            <div class="grid grid-cols-2 gap-4 mt-6">
+                                <button onclick="clearCanvas()" class="bg-armor-800 hover:bg-armor-700 text-white px-6 py-4 rounded-xl font-bold transition-all uppercase tracking-widest text-xs border border-armor-700">Purge Canvas</button>
+                                <button onclick="saveSketch()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-xl font-bold transition-all uppercase tracking-widest text-xs shadow-lg shadow-green-900/20 flex items-center justify-center gap-2">
+                                    ${icons.download} Secure to Timeline
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (state.activeTab === 'ai') {
+                content.innerHTML = `
+                    <div class="max-w-3xl mx-auto space-y-8">
+                        <div class="text-center space-y-4">
+                            <h2 class="text-4xl font-display font-black text-white italic tracking-tighter">BOUNDARY <span class="text-brand-primary underline decoration-armor-700 underline-offset-8">INTELLIGENCE</span></h2>
+                            <p class="text-armor-400 font-light">Synthesizing professional defensive communications for hostile client vectors.</p>
+                        </div>
+
+                        <div class="glass rounded-3xl p-8 border border-armor-700/50 space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                ${quickTemplates.map(t => `<button onclick="state.aiInput='${t.prompt}'; render();" class="text-left p-4 rounded-2xl border border-armor-800 bg-armor-900/30 hover:border-brand-primary/50 transition-all text-xs group">
+                                    <div class="text-brand-primary font-bold mb-1 uppercase tracking-widest group-hover:translate-x-1 transition-transform">→ ${t.title}</div>
+                                    <div class="text-armor-500 line-clamp-1">${t.prompt}</div>
+                                </button>`).join('')}
+                            </div>
+                            
+                            <div class="relative">
+                                <textarea id="aiInput" placeholder="Describe the client violation... (e.g., 'Client WhatsApped me at midnight about a toilet location change')" class="w-full bg-armor-900/60 border border-armor-700 rounded-2xl px-6 py-6 h-48 focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all text-lg font-light leading-relaxed"></textarea>
+                                <div class="absolute bottom-4 right-4 text-armor-600 flex items-center gap-2 text-xs font-bold font-mono">
+                                    ${icons.brain} NEURAL PROCESSOR READY
+                                </div>
+                            </div>
+
+                            <button onclick="getAIHelp()" ${state.aiLoading ? 'disabled' : ''} class="w-full bg-brand-primary hover:bg-blue-600 disabled:bg-armor-800 px-8 py-5 rounded-2xl font-black text-white shadow-2xl transition-all active:scale-95 uppercase tracking-widest flex items-center justify-center gap-4">
+                                ${state.aiLoading ? `
+                                    <svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Analyzing Aggression...
+                                ` : `${icons.brain} GENERATE DEFENSIVE DIRECTIVE`}
+                            </button>
+
+                            ${state.aiResponse ? `
+                                <div class="animate-fade-in p-8 rounded-3xl bg-brand-primary/5 border border-brand-primary/20 space-y-6">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="font-bold text-brand-primary tracking-widest text-sm italic uppercase">DEFENSIVE OUTPUT SIGNAL:</h3>
+                                        <button onclick="navigator.clipboard.writeText(\`${state.aiResponse}\`); alert('Directive copied to clipboard.')" class="px-4 py-2 bg-armor-800 hover:bg-armor-700 text-xs font-bold rounded-lg transition-all border border-armor-700">COPY SIGNAL</button>
+                                    </div>
+                                    <div class="text-armor-100 font-light leading-relaxed text-lg whitespace-pre-wrap font-mono prose prose-invert max-w-none">
+                                        ${state.aiResponse}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                document.getElementById('aiInput')?.addEventListener('input', e => { state.aiInput = e.target.value; });
+            } else if (state.activeTab === 'history') {
+                content.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-fit">
+                        <section class="space-y-6">
+                            <h2 class="text-xl font-display font-bold italic mb-6">Chronological Session Logs</h2>
+                            ${state.interactions.length === 0 ? `
+                                <div class="glass border-dashed border-2 border-armor-700 rounded-3xl p-12 text-center">
+                                    <p class="text-armor-500 font-light italic">Timeline is currently blank.</p>
+                                </div>
+                            ` : state.interactions.slice().reverse().map(interaction => `
+                                <div class="glass rounded-2xl p-6 border border-armor-800 space-y-3 relative overflow-hidden group">
+                                    <div class="absolute top-0 right-0 w-1 h-full ${interaction.wasUseful ? 'bg-green-500' : 'bg-red-500'}"></div>
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h3 class="font-bold text-white text-lg">${interaction.clientName}</h3>
+                                            <div class="flex gap-3 text-[10px] items-center mt-1">
+                                                <span class="text-armor-500 uppercase tracking-widest">${interaction.type}</span>
+                                                ${interaction.isWeekend ? '<span class="text-red-400 italic">!! WEEKEND ANOMALY !!</span>' : ''}
+                                            </div>
+                                        </div>
+                                        <span class="text-[10px] font-bold py-1 px-3 rounded-full border ${interaction.wasUseful ? 'border-green-500/30 text-green-400 bg-green-400/5' : 'border-red-500/30 text-red-400 bg-red-400/5'} italic uppercase tracking-widest">
+                                            ${interaction.wasUseful ? 'Billable' : 'Wasteful'}
+                                        </span>
+                                    </div>
+                                    <p class="text-armor-300 font-light text-sm italic leading-relaxed border-l-2 border-armor-800 pl-4 py-1">${interaction.description}</p>
+                                    <div class="text-[10px] text-armor-600 font-mono text-right mt-4 pt-2 border-t border-armor-900">TIMESTAMP: ${new Date(interaction.timestamp).toLocaleString()}</div>
+                                </div>
+                            `).join('')}
+                        </section>
+
+                        <section class="space-y-6">
+                            <h2 class="text-xl font-display font-bold italic mb-6">Intelligence Visuals (Sketches)</h2>
+                            ${state.sketches.length === 0 ? `
+                                <div class="glass border-dashed border-2 border-armor-700 rounded-3xl p-12 text-center text-armor-600 italic">No visual logs available.</div>
+                            ` : `
+                                <div class="grid grid-cols-1 gap-4">
+                                    ${state.sketches.map(s => `
+                                        <div class="glass rounded-2xl p-4 border border-armor-800">
+                                            <img src="${s.image}" class="w-full h-auto rounded-lg mb-4 bg-armor-950 border border-armor-800">
+                                            <div class="flex justify-between items-end">
+                                                <span class="text-xs font-bold text-armor-400">${s.clientName}</span>
+                                                <span class="text-[10px] text-armor-600 font-mono">${new Date(s.timestamp).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `}
+                        </section>
+                    </div>
+                `;
+            } else if (state.activeTab === 'vault') {
+                content.innerHTML = `
+                    <div class="max-w-4xl mx-auto space-y-8 animate-fade-in">
+                        <div class="text-center space-y-4">
+                            <h2 class="text-4xl font-display font-black text-white italic tracking-tighter">SECURE <span class="text-brand-primary">DATA VAULT</span></h2>
+                            <p class="text-armor-400 font-light">Backup your interaction history, sketches, and client metrics for external cloud storage.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="glass rounded-3xl p-8 border border-armor-700/50 space-y-6">
+                                <div class="p-4 bg-brand-primary/10 rounded-2xl border border-brand-primary/20">
+                                    <h3 class="text-brand-primary font-bold uppercase tracking-widest text-xs mb-2">Export Protocol</h3>
+                                    <p class="text-armor-300 text-sm font-light">Download your entire history as a secure JSON file. You can save this to your iCloud, Google Drive, or physical storage for safe keeping.</p>
+                                </div>
+                                <button onclick="exportData()" class="w-full bg-brand-primary hover:bg-blue-600 px-6 py-4 rounded-xl font-bold text-white transition-all shadow-lg flex items-center justify-center gap-3">
+                                    ${icons.download} INITIALIZE BACKUP
+                                </button>
+                            </div>
+
+                            <div class="glass rounded-3xl p-8 border border-armor-700/50 space-y-6">
+                                <div class="p-4 bg-green-500/10 rounded-2xl border border-green-500/20">
+                                    <h3 class="text-green-400 font-bold uppercase tracking-widest text-xs mb-2">Restoration Protocol</h3>
+                                    <p class="text-armor-300 text-sm font-light">Upload a previously exported vault file to merge it with your local session history. Duplicate records will be filtered automatically.</p>
+                                </div>
+                                <button onclick="triggerImport()" class="w-full bg-armor-800 hover:bg-armor-700 px-6 py-4 rounded-xl font-bold text-white transition-all border border-armor-700 flex items-center justify-center gap-3">
+                                    ${icons.upload} UPLOAD & RESTORE
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="glass rounded-3xl p-8 border border-red-900/30 bg-red-950/5 space-y-6">
+                            <div class="flex items-center gap-4 text-red-400">
+                                <div class="p-2 bg-red-400/20 rounded-lg">${icons.alert}</div>
+                                <div>
+                                    <h3 class="font-bold uppercase tracking-widest text-xs">Danger Zone: System Purge</h3>
+                                    <p class="text-armor-500 text-xs font-light">Permanently delete all local records. This action is irreversible without a backup file.</p>
+                                </div>
+                            </div>
+                            <button onclick="wipeData()" class="w-full border border-red-900/50 text-red-500 hover:bg-red-500 hover:text-white px-6 py-3 rounded-xl font-bold transition-all text-xs uppercase tracking-widest">
+                                ERASE ALL LOCAL HISTORY
+                            </button>
+                        </div>
+
+                        <div class="glass rounded-3xl p-8 border border-armor-700/50">
+                            <h3 class="font-display font-bold italic mb-6 text-armor-300">Vault Diagnostics:</h3>
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="bg-armor-900/50 p-4 rounded-2xl border border-armor-800">
+                                    <div class="text-armor-500 text-[10px] uppercase font-bold mb-1">Total Records</div>
+                                    <div class="text-xl font-mono text-white">${state.clients.length + state.interactions.length}</div>
+                                </div>
+                                <div class="bg-armor-900/50 p-4 rounded-2xl border border-armor-800">
+                                    <div class="text-armor-500 text-[10px] uppercase font-bold mb-1">Visual Assets</div>
+                                    <div class="text-xl font-mono text-white">${state.sketches.length}</div>
+                                </div>
+                                <div class="bg-armor-900/50 p-4 rounded-2xl border border-armor-800">
+                                    <div class="text-armor-500 text-[10px] uppercase font-bold mb-1">Storage Mode</div>
+                                    <div class="text-xl font-mono text-brand-primary">ENCRYPTED*</div>
+                                </div>
+                                <div class="bg-armor-900/50 p-4 rounded-2xl border border-armor-800">
+                                    <div class="text-armor-500 text-[10px] uppercase font-bold mb-1">Last Sync</div>
+                                    <div class="text-xl font-mono text-armor-400">${state.interactions.length > 0 ? 'Today' : 'None'}</div>
+                                </div>
+                            </div>
+                            <p class="mt-4 text-[10px] text-armor-600 italic">*Data is stored in browser-encrypted local storage. External files are handled by your system's file manager for maximum privacy.</p>
+                        </div>
+                    </div>
+                `;
+            } else if (state.activeTab === 'manual') {
+                content.innerHTML = `
+                    <div class="max-w-4xl mx-auto space-y-12 animate-fade-in pb-20">
+                        <div class="text-center space-y-4">
+                            <h2 class="text-4xl font-display font-black text-white italic tracking-tighter uppercase">OPERATIONAL <span class="text-brand-primary">MANUAL</span></h2>
+                            <p class="text-armor-400 font-light">Tactical guide for deploying Freelance Armor in your daily workflow.</p>
+                        </div>
+
+                        <div class="space-y-8">
+                            <div class="glass rounded-3xl p-8 border border-armor-700/50">
+                                <h3 class="text-xl font-display font-bold text-white mb-6 flex items-center gap-3">
+                                    <span class="text-brand-primary">01</span> Phase One: Recruit Clients
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                                    <p class="text-armor-300 font-light leading-relaxed">Start by adding your current active clients in the <strong>Clients</strong> tab. Assign a <strong>Risk Level</strong> based on their past behavior. This helps the system highlight potential "threats" to your time.</p>
+                                    <div class="p-4 bg-armor-900 shadow-inner rounded-2xl border border-armor-800 text-xs text-armor-500 font-mono">
+                                        TIP: Red status clients should be handled with maximum boundary enforcement.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass rounded-3xl p-8 border border-armor-700/50">
+                                <h3 class="text-xl font-display font-bold text-white mb-6 flex items-center gap-3">
+                                    <span class="text-brand-primary">02</span> Phase Two: Log Sessions
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                                    <p class="text-armor-300 font-light leading-relaxed">Every time a client messages you or calls you, log it in <strong>Log Session</strong>. Include if it was useful. This builds a "Wastefulness Metric" that justifies your boundaries later.</p>
+                                    <div class="p-4 bg-armor-900 shadow-inner rounded-2xl border border-armor-800 text-xs text-armor-500 font-mono">
+                                        Visual logs (sketches) can also be saved if the discussion involved technical changes.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass rounded-3xl p-8 border border-armor-700/50">
+                                <h3 class="text-xl font-display font-bold text-white mb-6 flex items-center gap-3">
+                                    <span class="text-brand-primary">03</span> Phase Three: Deploy Boundaries
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                                    <p class="text-armor-300 font-light leading-relaxed">When a client violates a boundary (e.g., calling on a Sunday), use the <strong>Boundary AI</strong>. Input the situation, and it will generate a professional "Directive" you can copy-paste to the client.</p>
+                                    <div class="p-4 bg-brand-primary/10 rounded-2xl border border-brand-primary/20 text-xs text-brand-primary font-bold tracking-widest uppercase">
+                                        LET THE SYSTEM BE THE "BAD GUY" SO YOU DON'T HAVE TO BE.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass rounded-3xl p-8 border border-armor-700/50">
+                                <h3 class="text-xl font-display font-bold text-white mb-6 flex items-center gap-3">
+                                    <span class="text-brand-primary">04</span> Phase Four: Data Vaulting
+                                </h3>
+                                <p class="text-armor-300 font-light leading-relaxed mb-4">Protect your records. Use the <strong>Secure Vault</strong> weekly to export your data. Store the file in your preferred cloud drive (iCloud/Google Drive) to ensure you never lose your history of documented abuse.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (state.activeTab === 'about') {
+                content.innerHTML = `
+                    <div class="max-w-4xl mx-auto space-y-12 animate-fade-in pb-20">
+                        <div class="text-center space-y-4">
+                            <h2 class="text-4xl font-display font-black text-white italic tracking-tighter uppercase">ABOUT THE <span class="text-brand-primary">SHIELD</span></h2>
+                            <p class="text-armor-400 font-light italic">"A tool born from experience, designed for resilience."</p>
+                        </div>
+
+                        <div class="glass rounded-3xl p-10 border border-armor-700/50 space-y-8">
+                            <div class="prose prose-invert max-w-none">
+                                <h3 class="text-2xl font-display font-bold text-white italic">The Mission</h3>
+                                <p class="text-armor-300 font-light text-lg leading-relaxed">Freelance Armor was created for architects and creative professionals who have experienced the drain of client abuse. In the high-pressure world of architectural consultancy, boundaries are often blurred. This app provides the structural support needed to document interactions, quantify wasteful sessions, and maintain professional distance through AI-assisted communication.</p>
+                                
+                                <div class="h-px w-full bg-armor-800 my-10"></div>
+
+                                <h3 class="text-2xl font-display font-bold text-white italic mb-6">The Development Team</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div class="p-6 bg-armor-950 rounded-2xl border border-armor-800 shadow-xl group hover:border-brand-primary transition-all">
+                                        <div class="text-brand-primary font-black uppercase tracking-tighter mb-2 italic">VISION & XP</div>
+                                        <div class="text-white font-bold text-xl mb-1">yeatz</div>
+                                        <p class="text-armor-500 text-xs">Architectural experience & UI/UX Visionary.</p>
+                                    </div>
+                                    <div class="p-6 bg-armor-950 rounded-2xl border border-armor-800 shadow-xl group hover:border-brand-primary transition-all">
+                                        <div class="text-brand-primary font-black uppercase tracking-tighter mb-2 italic">BACKBONE & LOGIC</div>
+                                        <div class="text-white font-bold text-xl mb-1">Gemini</div>
+                                        <p class="text-armor-500 text-xs">AI Reasoning, Complex logic & System Security.</p>
+                                    </div>
+                                    <div class="p-6 bg-armor-950 rounded-2xl border border-armor-800 shadow-xl group hover:border-brand-primary transition-all">
+                                        <div class="text-brand-primary font-black uppercase tracking-tighter mb-2 italic">PRODUCTION & ENGINE</div>
+                                        <div class="text-white font-bold text-xl mb-1">Claude</div>
+                                        <p class="text-armor-500 text-xs">The original architect & rapid production engine.</p>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-armor-400 font-light mt-10 italic text-center">"This project is a tribute to the power of human-AI collaboration in solving real-world professional challenges."</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize
+        render();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+{
+    "name": "Freelance Armor",
+    "short_name": "Armor",
+    "description": "Protect your time. Track abuse. Take control.",
+    "start_url": "/app",
+    "display": "standalone",
+    "background_color": "#020617",
+    "theme_color": "#3b82f6",
+    "icons": [
+        {
+            "src": "public/icons8-shield-100.png",
+            "sizes": "100x100",
+            "type": "image/png"
+        },
+        {
+            "src": "public/Freelances_Shield01.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
