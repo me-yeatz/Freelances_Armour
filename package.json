@@ -1,9 +1,0 @@
-{
-    "name": "freelance-armor",
-    "version": "2.6.0",
-    "private": true,
-    "description": "Defensive Systems for Professionals",
-    "scripts": {
-        "start": "serve ."
-    }
-}
