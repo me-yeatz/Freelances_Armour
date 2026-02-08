@@ -8,12 +8,12 @@
     "theme_color": "#3b82f6",
     "icons": [
         {
-            "src": "public/icons8-shield-100.png",
+            "src": "/public/icons8-shield-100.png",
             "sizes": "100x100",
             "type": "image/png"
         },
         {
-            "src": "public/Freelances_Shield01.png",
+            "src": "/public/Freelances_Shield01.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any maskable"
